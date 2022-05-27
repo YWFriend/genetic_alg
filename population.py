@@ -7,16 +7,11 @@ from typing import Callable
 class Population:  # Класс, описывающий популяцию
     def __init__(
             self,
-            size_of_pop: int,
-            genotype_function: Callable[[], ndarray],
-            attack_function: Callable[[ndarray], int]
+            population: list[Individual],
+            phenotype_of_population: float = 0.0
     ):
-        self.size_of_pop: int = size_of_pop
-        self.population: list[Individual] = [Individual(
-            genotype_function(),
-            attack_function
-        ) for _ in range(size_of_pop)]
-        self.phenotype_of_population: float = float(np.mean(list(map(lambda x: x.phenotype, self.population))))
+        self.population: list[Individual] = population
+        self.phenotype_of_population: float = phenotype_of_population
 
     def info(self):
         for individual in self.population:
@@ -46,3 +41,12 @@ class Population:  # Класс, описывающий популяцию
 
                 temp_ar.pop[s].indiv[m + 6] = pop1.pop[s].indiv[m + 6]
                 temp_ar.pop[s + 1].indiv[m + 6] = pop1.pop[s + 1].indiv[m + 6]
+
+    @staticmethod
+    def create_population(population_size: int, genotype_array: list, attac_function: Callable):
+        pop = [Individual.create_individual(genotype_array, attac_function) for _ in range(population_size)]
+
+        return Population(
+            pop,
+            float(np.mean(list(map(lambda x: x.phenotype, pop))))
+        )

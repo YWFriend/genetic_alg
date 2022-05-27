@@ -4,23 +4,23 @@ from numpy import ndarray
 
 
 class Individual:  # Класс, описывающий индивида
-    genotype: list[tuple[int, int]]
+    genotype: list
     phenotype: int
 
     def __init__(
             self,
-            genotype: list[tuple[int, int]],
-            attack_function: Callable[[ndarray], int]
+            genotype: list,
+            phenotype: int = 0
     ) -> None:
-        self.genotype: list[tuple[int, int]] = genotype
-        self.attack_function: Callable[[ndarray], int] = attack_function
-        self.phenotype: int = attack_function(self.genotype)
+        self.genotype: list = genotype
+        self.phenotype: int = phenotype
 
     def info(self):  # Вывод на экран индивида
-        np.set_printoptions(linewidth=np.inf)
-        print(self.genotype.tolist(), ' = ', self.phenotype)
+        print(self.genotype, ' = ', self.phenotype)
 
-def create_individual(genotype_array: list[tuple[int, int]]) -> Individual:
-    return Individual(
-        genotype= genotype_array
-    )
+    @staticmethod
+    def create_individual(genotype_array: list, attac_function: Callable):
+        return Individual(
+            genotype=genotype_array,
+            phenotype=attac_function(genotype_array)
+        )
