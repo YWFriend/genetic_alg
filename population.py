@@ -1,5 +1,5 @@
+import random
 import numpy as np
-from numpy import ndarray
 from individ import Individual
 from typing import Callable
 
@@ -8,45 +8,43 @@ class Population:  # Класс, описывающий популяцию
     def __init__(
             self,
             population: list[Individual],
-            phenotype_of_population: float = 0.0
+            phenotype: float
     ):
         self.population: list[Individual] = population
-        self.phenotype_of_population: float = phenotype_of_population
+        self.phenotype: float = phenotype
+
+    def check_health(self):
+        self.phenotype = float(np.mean(list(map(lambda x: x.phenotype, self.population))))
 
     def info(self):
         for individual in self.population:
             individual.info()
-        print("Средний фенотип по поколению =", self.phenotype_of_population)
+        print("Средний фенотип по поколению =", self.phenotype)
 
-    def crossover(self, double_cross: bool):
-        for s in range(0, len(self.population) // 2, 2):  # Цикл. От 0 до размера популяции с шагом 2.
+    def sort(self):
+        self.population.sort(key=lambda i: i.phenotype)
 
-            # # Кроссенговер
-            # ran = random.randint(1, 5)
-            #
-            # for n in range(ran):
-            #     temp_ar.pop[s].indiv[n] = pop1.pop[s].indiv[n]
-            #     temp_ar.pop[s + 1].indiv[n] = pop1.pop[s + 1].indiv[n]
-            # for n in range(ran, 9):
-            #     temp_ar.pop[s].indiv[n] = pop1.pop[s + 1].indiv[n]
-            #     temp_ar.pop[s + 1].indiv[n] = pop1.pop[s].indiv[n]
+    def crossover(self):
+        for s in range(0, len(self.population) // 2, 2):  # Цикл. От 0 до половины размера популяции с шагом 2.
+            # Кроссенговер
+            # Берутся пары соседних индивидов, меняются местами часть их генотипа от начала до n
+            for i in range(random.randint(1, len(self.population[0].genotype) - 1)):
+                self.population[s].genotype[i], self.population[s + 1].genotype[i] = self.population[s + 1].genotype[i], self.population[s].genotype[i]
 
-            # Двойной Кроссенговер
-            for m in range(3):
-                temp_ar.pop[s].indiv[m] = pop1.pop[s].indiv[m]
-                temp_ar.pop[s + 1].indiv[m] = pop1.pop[s + 1].indiv[m]
-
-                temp_ar.pop[s].indiv[m + 3] = pop1.pop[s + 1].indiv[m + 3]
-                temp_ar.pop[s + 1].indiv[m + 3] = pop1.pop[s].indiv[m + 3]
-
-                temp_ar.pop[s].indiv[m + 6] = pop1.pop[s].indiv[m + 6]
-                temp_ar.pop[s + 1].indiv[m + 6] = pop1.pop[s + 1].indiv[m + 6]
+                self.population[s].check_health()
+                self.population[s + 1].check_health()
 
     @staticmethod
-    def create_population(population_size: int, genotype_array: list, attac_function: Callable):
-        pop = [Individual.create_individual(genotype_array, attac_function) for _ in range(population_size)]
+    def create_population(
+            population_size: int,
+            genotype_func: Callable[[], list],
+            attack_function: Callable[[list], int]
+    ):
+        assert population_size // 2 != 0, 'Size must be even'
+
+        pop = [Individual.create_individual(genotype_func(), attack_function) for _ in range(population_size)]
 
         return Population(
-            pop,
-            float(np.mean(list(map(lambda x: x.phenotype, pop))))
+            population=pop,
+            phenotype=float(np.mean(list(map(lambda x: x.phenotype, pop)))),
         )

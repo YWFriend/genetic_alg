@@ -1,6 +1,4 @@
-from typing import Callable, Generic, TypeVar
 from population import Population
-from individ import Individual
 import numpy as np
 from numpy import ndarray, mgrid, random
 
@@ -12,9 +10,6 @@ def gencoordinates() -> list[tuple[int, int]]:  # Функция создани�
     return list(map(lambda i: (i[0], i[1]), sample))
 
 
-# def simple_coords() -> list[(int, int)]:
-#     coords = [(random.randint(0, 7), random.randint(0, 7)) for _ in range(9)]
-#
 def attack(genotype: list[tuple[int, int]]) -> int:  # Функция атаки короля
     board = np.zeros((8, 8))
     for i in genotype:
@@ -25,6 +20,7 @@ def attack(genotype: list[tuple[int, int]]) -> int:  # Функция атаки
     return board.sum()
 
 
-arr = Individual.create_individual(gencoordinates(), attack)
-arr.info()
+pop = Population.create_population(10, gencoordinates, attack)
+
+
 flag = 1
