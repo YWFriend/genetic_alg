@@ -1,4 +1,4 @@
-from population import Population
+from population import Population, breeding
 import numpy as np
 from numpy import ndarray, mgrid, random
 
@@ -22,5 +22,6 @@ def attack(genotype: list[tuple[int, int]]) -> int:  # Функция атаки
 
 pop = Population.create_population(10, gencoordinates, attack)
 
+breeding(pop, 100, 64)
 
 flag = 1

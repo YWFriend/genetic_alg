@@ -19,7 +19,7 @@ class Individual:  # Класс, описывающий индивида
     def info(self):  # Вывод на экран индивида
         print(self.genotype, ' = ', self.phenotype)
 
-    def check_health(self):
+    def count_phenotype(self):
         self.phenotype = self.health_func(self.genotype)
 
     @staticmethod
