@@ -1,10 +1,11 @@
-import random
-import numpy as np
+from random import shuffle, randint, random
+from copy import deepcopy
+from numpy import mean
 from individ import Individual
 from typing import Callable
 
 
-class Population:  # Класс, описывающий популяцию
+class Population:
     def __init__(
             self,
             population: list[Individual],
@@ -14,33 +15,66 @@ class Population:  # Класс, описывающий популяцию
         self.phenotype: float = phenotype
 
     def count_phenotype(self):
-        self.phenotype = float(np.mean(list(map(lambda x: x.phenotype, self.population))))
+        self.phenotype = float(mean(list(map(lambda x: x.phenotype, self.population))))
 
     def info(self):
         for individual in self.population:
             individual.info()
-        print("Средний фенотип по поколению =", self.phenotype)
+        print("Average phenotype of population =", self.phenotype)
 
     def sort(self):
-        self.population.sort(key=lambda i: i.phenotype)
+        self.population.sort(key=lambda i: i.phenotype, reverse=bool(1))
 
-    def crossover(self, limit: int, mutation_probability: float) -> bool:
-        for s in range(0, len(self.population) // 2, 2):  # Цикл. От 0 до половины размера популяции с шагом 2.
-            # Берутся пары соседних индивидов, меняются местами часть их генотипа от начала до n
-            for i in range(random.randint(1, len(self.population[0].genotype) - 1)):
-                self.population[s].genotype[i], self.population[s + 1].genotype[i] = \
-                    self.population[s + 1].genotype[i], self.population[s].genotype[i]
+    def get_individual_size(self) -> int:
+        return len(self.population[0].genotype)
 
-            # Мутация
-            # if random.random() < mutation_probability:
-            #     self.population[s].genotype[random.randint(0)]
+    def crossover(self, limit: int, mutation_probability: float, mutation_min: int, mutation_max: int) -> bool:
+        shuffle(self.population)
+        previous_ind = self.population[0]
 
-            self.population[s].count_phenotype()
-            self.population[s + 1].count_phenotype()
+        for key, ind in enumerate(self.population):
+            if key % 2 != 0:
+                for i in range(randint(1, len(ind.genotype) // 2)):
+                    ind.genotype[i], previous_ind.genotype[i] = previous_ind.genotype[i], ind.genotype[i]
 
-            if self.population[s].phenotype == limit or self.population[s + 1].phenotype == 1:
+                previous_ind.count_phenotype()
+
+            for pos, gen in enumerate(ind.genotype):  # Exclusion of repeated genes in the genotype
+                while ind.genotype.count(gen) > 1:
+                    gen = Individual.create_gen(mutation_min, mutation_max)
+                    ind.genotype[pos] = gen
+
+            if random() < mutation_probability:  # Mutation
+                ind.mutate(mutation_min, mutation_max)
+
+            ind.count_phenotype()
+
+            if ind.phenotype == limit or previous_ind.phenotype == limit:
                 return bool(1)
+
+            previous_ind = ind
         return bool(0)
+
+    def selection(self):
+        pop_for_selection = deepcopy(self.population[:len(self.population) // 2])
+        self.population = pop_for_selection + deepcopy(pop_for_selection)
+
+    def breeding(self, iteration_count: int, limit: int):
+        self.info()
+
+        for i in range(iteration_count):
+            result = self.crossover(limit, 0.3, 0, 7)
+            self.sort()
+            self.info()
+            self.selection()
+            print('Generation: ', i + 1)
+            if result:
+                print('Result achieved, successful individual:')
+                self.population[0].info()
+
+                break
+            else:
+                self.count_phenotype()
 
     @staticmethod
     def create_population(
@@ -54,19 +88,5 @@ class Population:  # Класс, описывающий популяцию
 
         return Population(
             population=pop,
-            phenotype=float(np.mean(list(map(lambda x: x.phenotype, pop)))),
+            phenotype=float(mean(list(map(lambda x: x.phenotype, pop)))),
         )
-
-
-def breeding(population: Population, iteration_count: int, limit: int):
-    for i in range(iteration_count):
-        population.info()
-        population.sort()
-        result = population.crossover(limit, 0.3)
-        if result:
-            print('Result achieved, successful individual:')
-            population.population[-1].info()
-
-            break
-        else:
-            population.count_phenotype()
